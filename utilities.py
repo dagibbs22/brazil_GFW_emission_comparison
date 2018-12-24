@@ -69,13 +69,12 @@ def create_annual_PRODES_early():
         print "Masking PRODES primary forest raster to what was there just before", year
 
         # Annual PRODES primary forest extents
-        prim_reclass = os.path.join(dir, PRODES_folder, "PRODES_primary_forest_{}.tif".format(year))
+        prim_reclass = os.path.join(dir, PRODES_folder, "PRODES_primary_forest_{}_early.tif".format(year))
 
         short_year = year - 2000
 
-        print "  PRODES from 2010 or later"
         print "  Start time is", str(datetime.datetime.now())
-        outReclass = Reclassify(prim_2007_17, "Value",
+        outReclass = Reclassify(prim_2000_13, "Value",
                                 RemapRange([[1, 1, short_year],
                                             [2, short_year - 2, "NODATA"], [short_year - 1, 16, short_year],
                                             [17, short_year + 6, "NODATA"], [short_year + 7, 24, short_year]]))

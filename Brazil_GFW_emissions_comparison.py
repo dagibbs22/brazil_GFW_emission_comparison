@@ -1,4 +1,19 @@
-
+### This script applies four exclusions to Hansen tree cover loss that are used by Brazil's PRODES monitoring system
+### in order to obtain the area of tree cover loss each year between 2001 and 2017 that meets Brazil's criteria for its
+### official statistics.
+### The four criteria are: loss must not be in burned area, loss must be within legal Amazon boundary,
+### loss must be in PRODES primary forest, and loss must be >6.25 hectares.
+### Inputs are:
+### 1. Hansen loss
+### 2. Burned year (the year that the pixel was burned using MODIS data)
+### 3. PRODES primary forest extent each year (keys are at http://www.dpi.inpe.br/prodesdigital/dadosn/mosaicos/class_rgb.txt)
+### 4. Legal Amazon boundary (from Liz Goldman)
+### Two PRODES primary forest rasters used here: one that covers 2007 to 2017 and one that covers 2001 to 2014.
+### The code below includes lines to make the PRODES annual primary forest from the 2007-2017 raster but not from
+### the 2001-2014 raster; that must be made by manual geoprocessing.
+### This results in two time series of tree cover loss: 2001-2014 and 2007-2017.
+### For each year, the tool produces a series of tifs and shapefiles. The shapefiles can then have zonal statistics
+### applied to them (e.g., Hadoop) to get emissions and tree cover loss for each year.
 
 
 import os
@@ -18,28 +33,51 @@ else:
 # # This only needs to be run once to create the annual PRODES primary forest rasters.
 # utilities.create_annual_PRODES_recent()
 
+# Ranges for creating annual emissions maps using the early and recent PRODES primary forest rasters.
+# The variable names in the for loop below must match the early/recent PRODES selection.
+early_PRODES = [2001, 2015]
+late_PRODES = [2007, 2018]
+
 # Iterates through years to get loss under various exclusion criteria in each year
-for year in range(2007, 2018):
+# for year in range(early_PRODES[0], early_PRODES[1]):
+for year in range(2010, early_PRODES[1]):
 
     print "Processing loss in", year
 
     # One or two digit year used for processing
     short_year = year - 2000
 
+    # For the early (2014) PRODES raster (2001-2014 primary forests)
     # Names for output files under each criteria. Used for both tif and shp.
-    loss_year = os.path.join(utilities.out_dir, "loss_{}".format(year))
-    loss_year_noFire = os.path.join(utilities.out_dir, "loss_{}_noFire".format(year))
-    loss_year_noFire_legal = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ".format(year))
-    loss_year_noFire_legal_PRODES = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES".format(year))
-    loss_year_noFire_legal_PRODES_neighbor = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES_neighbor".format(year))
-    loss_year_noFire_legal_PRODES_neighbor_shp = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES_neighbor_convert.shp".format(year))
-    loss_year_noFire_legal_PRODES_neighbor_shp_dissolve = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES_neighbor_convert_diss.shp".format(year))
-    loss_year_noFire_legal_PRODES_neighbor_shp_dissolve_reproj = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES_neighbor_convert_diss_reproj.shp".format(year))
-    loss_year_noFire_legal_PRODES_neighbor_shp_dissolve_reproj_areas = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES_neighbor_convert_diss_reproj_areas.shp".format(year))
-    loss_year_noFire_legal_PRODES_neighbor_shp_dissolve_reproj_areas_large = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES_neighbor_convert_diss_reproj_areas_large.shp".format(year))
+    loss_year = os.path.join(utilities.out_dir, "loss_{}_early".format(year))
+    loss_year_noFire = os.path.join(utilities.out_dir, "loss_{}_early_noFire".format(year))
+    loss_year_noFire_legal = os.path.join(utilities.out_dir, "loss_{}_early_noFire_legalAMZ".format(year))
+    loss_year_noFire_legal_PRODES = os.path.join(utilities.out_dir, "loss_{}_early_noFire_legalAMZ_PRODES".format(year))
+    loss_year_noFire_legal_PRODES_neighbor = os.path.join(utilities.out_dir, "loss_{}_early_noFire_legalAMZ_PRODES_neighbor".format(year))
+    loss_year_noFire_legal_PRODES_neighbor_shp = os.path.join(utilities.out_dir, "loss_{}_early_noFire_legalAMZ_PRODES_neighbor_convert.shp".format(year))
+    loss_year_noFire_legal_PRODES_neighbor_shp_dissolve = os.path.join(utilities.out_dir, "loss_{}_early_noFire_legalAMZ_PRODES_neighbor_convert_diss.shp".format(year))
+    loss_year_noFire_legal_PRODES_neighbor_shp_dissolve_reproj = os.path.join(utilities.out_dir, "loss_{}_early_noFire_legalAMZ_PRODES_neighbor_convert_diss_reproj.shp".format(year))
+    loss_year_noFire_legal_PRODES_neighbor_shp_dissolve_reproj_areas = os.path.join(utilities.out_dir, "loss_{}_early_noFire_legalAMZ_PRODES_neighbor_convert_diss_reproj_areas.shp".format(year))
+    loss_year_noFire_legal_PRODES_neighbor_shp_dissolve_reproj_areas_large = os.path.join(utilities.out_dir, "loss_{}_early_noFire_legalAMZ_PRODES_neighbor_convert_diss_reproj_areas_large.shp".format(year))
 
-    # Annual PRODES primary forest extents
-    PRODES_prim = os.path.join(utilities.dir, utilities.PRODES_folder, "PRODES_primary_forest_{}.tif".format(year))
+    # Annual PRODES primary forest extents for the 2014 PRODES raster
+    PRODES_prim = os.path.join(utilities.dir, utilities.PRODES_folder, "PRODES_primary_forest_{}_early_raster.tif".format(year))
+
+    # # For the recent (2017) PRODES raster (2007-2017 primary forests)
+    # # Names for output files under each criteria. Used for both tif and shp.
+    # loss_year = os.path.join(utilities.out_dir, "loss_{}".format(year))
+    # loss_year_noFire = os.path.join(utilities.out_dir, "loss_{}_noFire".format(year))
+    # loss_year_noFire_legal = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ".format(year))
+    # loss_year_noFire_legal_PRODES = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES".format(year))
+    # loss_year_noFire_legal_PRODES_neighbor = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES_neighbor".format(year))
+    # loss_year_noFire_legal_PRODES_neighbor_shp = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES_neighbor_convert.shp".format(year))
+    # loss_year_noFire_legal_PRODES_neighbor_shp_dissolve = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES_neighbor_convert_diss.shp".format(year))
+    # loss_year_noFire_legal_PRODES_neighbor_shp_dissolve_reproj = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES_neighbor_convert_diss_reproj.shp".format(year))
+    # loss_year_noFire_legal_PRODES_neighbor_shp_dissolve_reproj_areas = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES_neighbor_convert_diss_reproj_areas.shp".format(year))
+    # loss_year_noFire_legal_PRODES_neighbor_shp_dissolve_reproj_areas_large = os.path.join(utilities.out_dir, "loss_{}_noFire_legalAMZ_PRODES_neighbor_convert_diss_reproj_areas_large.shp".format(year))
+    #
+    # # Annual PRODES primary forest extents for the 2017 PRODES raster
+    # PRODES_prim = os.path.join(utilities.dir, utilities.PRODES_folder, "PRODES_primary_forest_{}.tif".format(year))
 
     # Masks loss to the given year
     print "  Masking loss to", year
@@ -51,7 +89,7 @@ for year in range(2007, 2018):
 
     # Masks loss to pixels that were not burned (Brazil exclusion criteria 1).
     # Uses a merged burn year raster instead of a raster mosaic dataset because I couldn't get Con to work on the mosaic for some reason.
-    # However, I did get it to work on a single raster of all the burn tiled merged after I create an attribute table for it,
+    # However, I did get Con to work on a single raster of all the burn tiled merged after I create an attribute table for it,
     # so I used the merged raster instead.
     # For loss in 2001, only considers burn pixels from 2001 because considering previous year burning would include "0",
     # which means no burning was observed.
@@ -81,10 +119,19 @@ for year in range(2007, 2018):
     arcpy.gp.ExtractByMask_sa("{}.tif".format(loss_year_noFire), utilities.legal_Amazon_reproj, "{}.tif".format(loss_year_noFire_legal))
     print "    End time is", str(datetime.datetime.now())
 
+    # Replace a layer/table view name with a path to a dataset (which can be a layer file) or create the layer/table view within the script
+    # The following inputs are layers or table views: "PRODES_primary_forest_2001_early_raster.tif"
+    arcpy.gp.ExtractByMask_sa("C:/GIS/GFW_Climate/Brazil_emis_comparison/output/loss_2001_early_noFire_legalAMZ.tif",
+                              "PRODES_primary_forest_2001_early_raster.tif",
+                              "C:/GIS/GFW_Climate/Brazil_emis_comparison/output/loss_2002_early_noFire_legalAMZ_PRODES.tif")
+
+
     # Clips loss to where there is PRODES primary forest from that year (Brazil exclusion criteria 3)
     print "  Clipping loss raster to loss in PRODES primary forest"
     print "    Start time is", str(datetime.datetime.now())
-    arcpy.gp.ExtractByMask("{}.tif".format(loss_year_noFire_legal), PRODES_prim, "{}.tif".format(loss_year_noFire_legal_PRODES))
+    arcpy.gp.ExtractByMask_sa("{}.tif".format(loss_year_noFire_legal),
+                              PRODES_prim,
+                              "{}.tif".format(loss_year_noFire_legal_PRODES))
     print "    End time is", str(datetime.datetime.now())
 
     # Groups loss pixels into clusters of contiguous pixels (including diagonal pixels).
@@ -126,18 +173,15 @@ for year in range(2007, 2018):
 
     # Converts all the rasters to shapefiles so that their areas and emissions calculated
     print "  Converting rasters to shapefiles"
-    arcpy.RasterToPolygon_conversion("{}.tif".format(loss_year),
-                                     "{}.shp".format(loss_year),
-                                     "NO_SIMPLIFY", "VALUE")
-    arcpy.RasterToPolygon_conversion("{}.tif".format(loss_year_noFire),
-                                     "{}.shp".format(loss_year_noFire),
-                                     "NO_SIMPLIFY", "VALUE")
-    arcpy.RasterToPolygon_conversion("{}.tif".format(loss_year_noFire_legal),
-                                     "{}.shp".format(loss_year_noFire_legal),
-                                     "NO_SIMPLIFY", "VALUE")
+    # arcpy.RasterToPolygon_conversion("{}.tif".format(loss_year),
+    #                                  "{}.shp".format(loss_year),
+    #                                  "NO_SIMPLIFY", "VALUE")
+    # arcpy.RasterToPolygon_conversion("{}.tif".format(loss_year_noFire),
+    #                                  "{}.shp".format(loss_year_noFire),
+    #                                  "NO_SIMPLIFY", "VALUE")
+    # arcpy.RasterToPolygon_conversion("{}.tif".format(loss_year_noFire_legal),
+    #                                  "{}.shp".format(loss_year_noFire_legal),
+    #                                  "NO_SIMPLIFY", "VALUE")
     arcpy.RasterToPolygon_conversion("{}.tif".format(loss_year_noFire_legal_PRODES),
                                      "{}.shp".format(loss_year_noFire_legal_PRODES),
-                                     "NO_SIMPLIFY", "VALUE")
-    arcpy.RasterToPolygon_conversion("{}.tif".format(loss_year_noFire_legal_PRODES_neighbor),
-                                     "{}.shp".format(loss_year_noFire_legal_PRODES_neighbor),
                                      "NO_SIMPLIFY", "VALUE")
