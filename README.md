@@ -41,6 +41,9 @@ Iterate through all the shapefiles on the spot machine to add them to the PostGI
 It is based on this post: https://gis.stackexchange.com/questions/136553/batch-load-multiple-shapefiles-to-postgis
 `for shp in $(ls *.shp); do echo $shp; ogr2ogr -f "PostgreSQL" PG:"dbname=ubuntu" -append -nln merged -nlt MULTIPOLYGON -progress $shp; done;`
 
+In the Postgres shell, rename the geometry column from wkb_geometry to geom.
+`ALTER TABLE merged RENAME COLUMN wkb_geometry to geom;`
+
 Clone the gfw-annual-loss-processing repo:
 `git clone https://github.com/wri/gfw-annual-loss-processing`
 
