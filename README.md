@@ -8,7 +8,7 @@ As each criterion is applied, a new tif and shapefile are created. The creation 
 For example, how much does restricting loss to areas that did not burn affect the loss/emissions total?
 This can take a few hours to run for each year of loss analyzed.
 
-Copy the outputs (tifs and shapefiles) to s3.
+Copy the outputs (tifs and shapefiles) to s3. The tifs are not used for furthe analysis but are good for visualization.
 
 After shapefiles for all years are created, the next step is to create a field with in each shapefile with the filename. This is done with prep_for_tsv_creation.py.
 This field with the name of the file will be used in Hadoop to identify the which shapefile the results are for.
@@ -17,3 +17,5 @@ The next step is to convert the shapefiles to tsvs without intersecting them wit
 This can be done with convert-AOI-to-tsv.py in https://github.com/wri/gfw-annual-loss-processing.
 
 Finally, the tsvs are put through Hadoop (https://github.com/wri/gfw-annual-loss-processing/tree/master/1c_Hadoop-Processing) and post-processed (https://github.com/wri/gfw-annual-loss-processing/blob/master/2_Cumulate-Results-and-Create-API-Datasets/cumsum_hadoop_output.py).
+
+For more information, refer to the Word document in this repo. 
