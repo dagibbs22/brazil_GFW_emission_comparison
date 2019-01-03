@@ -22,6 +22,10 @@ fire_loss_tile_path = os.path.join(dir, burn_mosaic)
 loss_tile = "C:\\GIS\\GFW_Climate\\Brazil_emis_comparison\\Hansen_loss_2017\\00N_050W.tif"
 PRODES_folder = "PRODES"
 
+loss_dir = "C:\\GIS\\GFW_Climate\\Brazil_emis_comparison\\Hansen_loss_2017"
+legal_Amazon_loss = "loss_clipped_to_legal_Amazon_20181228.tif"
+legal_Amazon_loss_dir =  os.path.join(loss_dir, legal_Amazon_loss)
+
 # The name of the burn year tiles merged into a single raster.
 # I needed to create the attribute table for this to work in the Con tool.
 burnyear_merge = "burnyear_merge_20181013.tif"
@@ -49,6 +53,15 @@ def create_mosaics():
     print "  Adding Hansen loss tiles to mosaic..."
     arcpy.AddRastersToMosaicDataset_management("{0}.gdb/{1}".format(gdb_path, Hansen_mosaic),
                                                raster_type="Raster Dataset", input_path=Hansen_loss_tile_path)
+
+    # I haven't actually tested this code out. It's based on the Python snippet from manually clipping, so it might
+    # not work as I've modified it here. At least, the rectangle arguments need to change.
+    print "  Clipping Hansen loss to Brazil boundary..."
+    arcpy.Clip_management(in_raster="{0}.gdb/{1}".format(gdb_path, Hansen_mosaic),
+                          rectangle="-73.9783164486978 -18.0406669808439 -43.9135843925793 5.27136996674568",
+                          out_raster=legal_Amazon_loss_dir,
+                          in_template_dataset="prodes_full_extent_reproj", nodata_value="256",
+                          clipping_geometry="ClippingGeometry", maintain_clipping_extent="NO_MAINTAIN_EXTENT")
 
     # # I couldn't get the burn year mosaic to work with the Con tool (kept making error 001464 or something), so
     # # this program never actually used the burn year mosaic. Hence, left this in but commented it out.
