@@ -16,4 +16,4 @@ This field with the name of the file will be used in Hadoop to identify the whic
 The next step is to convert the shapefiles to tsvs without intersecting them with administrative boundaries (GADM). This project does not require knowing the loss/emissions by administrative region.
 This can be done with convert-AOI-to-tsv.py in https://github.com/wri/gfw-annual-loss-processing.
 
-Finally, the tsvs are put through Hadoop ()https://github.com/wri/gfw-annual-loss-processing/tree/master/1c_Hadoop-Processing) and post-processed (https://github.com/wri/gfw-annual-loss-processing/blob/master/2_Cumulate-Results-and-Create-API-Datasets/cumsum_hadoop_output.py).
+Finally, the tsvs are put through Hadoop (https://github.com/wri/gfw-annual-loss-processing/tree/master/1c_Hadoop-Processing) and post-processed (https://github.com/wri/gfw-annual-loss-processing/blob/master/2_Cumulate-Results-and-Create-API-Datasets/cumsum_hadoop_output.py).
