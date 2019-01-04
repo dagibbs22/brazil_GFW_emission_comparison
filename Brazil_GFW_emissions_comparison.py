@@ -189,5 +189,7 @@ for year in range(early_PRODES[0], early_PRODES[1]):
 
         # Deletes shapefiles that have the same features as a shapefile created later (redundant shapefile)
         print "  Deleting unnecessary shapefiles..."
+        arcpy.Delete_management(legal_loss_year_PRODES_noFire_neighbor_shp)
         arcpy.Delete_management(legal_loss_year_PRODES_noFire_neighbor_shp_dissolve)
         arcpy.Delete_management(legal_loss_year_PRODES_noFire_neighbor_shp_dissolve_reproj)
+        arcpy.Delete_management(legal_loss_year_PRODES_noFire_neighbor_shp_dissolve_reproj_areas)
